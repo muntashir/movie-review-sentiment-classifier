@@ -12,7 +12,6 @@ class Dataset:
         # Index for minibatches
         self.data_index = {'train': 0, 'validation': 0}
         self.epoch_count = 0
-        self.sample_size = None
 
         dataset_filepath = os.path.join(data_dir, 'dataset.json')
         if os.path.isfile(dataset_filepath) and not force_rebuild:
@@ -30,14 +29,11 @@ class Dataset:
                         continue
 
                     label = folder.split(os.sep)[-1]
-
-                    for filename in filenames:
-                        full_path = os.path.join(folder, filename)
-                        data_and_label = {}
-                        data_and_label['path'] = full_path
-                        data_and_label['label'] = label
-                        print(data_and_label)
-                        data_and_labels.append(data_and_label)
+                    full_path = os.path.join(folder, filename)
+                    data_and_label = {}
+                    data_and_label['path'] = full_path
+                    data_and_label['label'] = label
+                    data_and_labels.append(data_and_label)
 
             random.shuffle(data_and_labels)
 
@@ -78,5 +74,3 @@ class Dataset:
 
         minibatch = self.dataset[dataset_split][start_pos:end_pos]
         return self.__load_text_as_vectors(minibatch), epoch_end
-
-dataset = Dataset('dataset')
