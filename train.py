@@ -9,7 +9,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
-import numpy as np
+
 
 def main(args):
     dataset = data.Dataset(args.data_dir)

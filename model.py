@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import numpy as np
 
 
 class Net(nn.Module):
@@ -27,6 +26,6 @@ class Net(nn.Module):
 
         output = self.embedding(input)
         output, hidden = self.lstm(output, (h0, c0))
-        output = output[:,-1,:]
+        output = output[:, -1, :]
         output = self.out_linear(output)
         return output
