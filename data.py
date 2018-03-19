@@ -10,8 +10,8 @@ MAX_LENGTH = 100
 class Dataset:
 
     def __init__(self, data_dir):
-        test_percent = 0.1
-        validation_percent = 0.1
+        test_percent = 0.05
+        validation_percent = 0.05
 
         # Index for minibatches
         self.data_index = {'train': 0, 'validation': 0}

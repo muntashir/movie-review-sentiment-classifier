@@ -18,8 +18,8 @@ class Net(nn.Module):
 
     def forward(self, input):
         batch_size = input.size()[0]
-        h0 = Variable(torch.randn(batch_size, 1, self.hidden_dim))
-        c0 = Variable(torch.randn(batch_size, 1, self.hidden_dim))
+        h0 = Variable(torch.randn(1, batch_size, self.hidden_dim))
+        c0 = Variable(torch.randn(1, batch_size, self.hidden_dim))
         if (torch.cuda.is_available()):
             h0 = h0.cuda()
             c0 = c0.cuda()

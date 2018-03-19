@@ -16,7 +16,7 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
 
     net = model.Net(data.VOCAB_SIZE)
-    optimizer = optim.SparseAdam(net.parameters())
+    optimizer = optim.Adam(net.parameters())
     step = 0
 
     if os.path.isfile(args.model_filename):
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         '-c',
         '--checkpoint-interval',
         help='Checkpoint training after these many steps',
-        default=100,
+        default=1000,
         type=int,
         dest='checkpoint_interval')
     parser.add_argument(
