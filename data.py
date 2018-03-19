@@ -14,7 +14,7 @@ class Dataset:
         validation_percent = 0.05
 
         # Index for minibatches
-        self.data_index = {'train': 0, 'validation': 0}
+        self.data_index = {'train': 0, 'validation': 0, 'test': 0}
         self.epoch_count = 0
 
         dataset_filepath = os.path.join(data_dir, 'dataset.json')
