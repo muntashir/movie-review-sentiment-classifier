@@ -1,11 +1,14 @@
 import os
 import random
 import json
+import numpy as np
+
+VOCAB_SIZE = 89528
 
 
 class Dataset:
 
-    def __init__(self, data_dir, force_rebuild=False):
+    def __init__(self, data_dir):
         test_percent = 0.1
         validation_percent = 0.1
 
@@ -14,7 +17,7 @@ class Dataset:
         self.epoch_count = 0
 
         dataset_filepath = os.path.join(data_dir, 'dataset.json')
-        if os.path.isfile(dataset_filepath) and not force_rebuild:
+        if os.path.isfile(dataset_filepath):
             print('Loading data split from cache')
 
             with open(dataset_filepath) as dataset_file:
@@ -48,10 +51,59 @@ class Dataset:
             with open(dataset_filepath, 'w') as dataset_file:
                 json.dump(self.dataset, dataset_file)
 
+        vocab_filepath = os.path.join(data_dir, 'imdb.vocab')
+        if not os.path.isfile(vocab_filepath):
+            print('vocab.txt file missing in dataset/')
+        else:
+            with open(vocab_filepath, 'r') as vocab_file:
+                self.word_to_index = [line.rstrip('\n') for line in vocab_file]
+
     def __load_text_as_vectors(self, batch):
-        batch_size = len(batch)
-        # TODO load text file as vector
-        return batch
+        vectors_and_labels = []
+        for data in batch:
+            vectors_and_label = {}
+            vectors_and_label['label'] = data['label']
+            vectors_and_label['vectors'] = []
+
+            filepath = data['path']
+            with open(filepath, 'r') as f:
+                words = f.read() \
+                    .replace('<br />', ' ') \
+                    .replace('(', '') \
+                    .replace(')', '') \
+                    .replace('--', '') \
+                    .replace('.', ' ') \
+                    .replace('"', ' ') \
+                    .replace('\'', ' ') \
+                    .replace('!', '') \
+                    .replace('?', '') \
+                    .replace('_', '') \
+                    .replace('/', '') \
+                    .replace(',', '') \
+                    .replace(':', '') \
+                    .replace(';', '') \
+                    .replace('*', '') \
+                    .replace('`', '') \
+                    .replace('\\', '') \
+                    .split(' ')
+            words = list(filter(None, words))
+            words = list(filter(lambda x: x != '-', words))
+
+            for word in words:
+                word = word.lower()
+                try:
+                    index = self.word_to_index.index(word)
+                except ValueError:
+                    if __name__ == '__main__':
+                        print('Unknown word: ' + word)
+                    index = self.word_to_index.index('UNKNOWN_WORD_TOKEN')
+                word_vector = np.zeros(VOCAB_SIZE)
+                word_vector[index] = 1
+                vectors_and_label['vectors'].append(word_vector)
+
+            vectors_and_labels.append(vectors_and_label)
+
+        return vectors_and_labels
 
     def get_next_minibatch(self, dataset_split, batch_size):
         epoch_end = False
@@ -74,3 +126,15 @@ class Dataset:
 
         minibatch = self.dataset[dataset_split][start_pos:end_pos]
         return self.__load_text_as_vectors(minibatch), epoch_end
+
+
+def test():
+    dataset = Dataset('dataset')
+    assert(len(dataset.word_to_index) == VOCAB_SIZE)
+
+    minibatch = dataset.get_next_minibatch('train', 3)
+    assert(len(minibatch[0]) == 3)
+
+
+if __name__ == '__main__':
+    test()
