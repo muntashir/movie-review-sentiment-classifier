@@ -33,10 +33,14 @@ def main(args):
 
     for i in itertools.count():
         if ((step + i) % args.checkpoint_interval == 0):
+            print('\nRunning validation')
             epoch_end = False
             total_loss = []
 
+            validation_step = 0
+            validation_size = len(dataset.dataset['validation'])
             while epoch_end == False:
+                validation_step += 1
                 minibatch, epoch_end = dataset.get_next_minibatch('validation', 1)
                 batch_tensor = Variable(minibatch[0])
                 labels_tensor = Variable(minibatch[1])
@@ -48,6 +52,8 @@ def main(args):
                 output = net.forward(batch_tensor)
                 loss = criterion(output, torch.max(labels_tensor, 1)[1])
                 total_loss.append(loss.data)
+                sys.stdout.write('Validation step %i/%i\r' % (validation_step, validation_size))
+                sys.stdout.flush()
 
             total_loss = float(sum(total_loss)[0]) / float(len(total_loss))
             print('\nValidation loss: %f' % total_loss)
@@ -70,6 +76,7 @@ def main(args):
                     'optim': optimizer.state_dict()
                 }, args.model_filename)
 
+        # Training
         minibatch, epoch_end = dataset.get_next_minibatch(
             'train', args.batch_size)
 
