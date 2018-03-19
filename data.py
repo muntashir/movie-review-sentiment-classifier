@@ -114,8 +114,8 @@ class Dataset:
             time_steps = np.max([len(vectors_and_label['vectors']), time_steps])
             vectors_and_labels.append(vectors_and_label)
 
-        batch_matrix = torch.zeros(int(time_steps), batch_size, VOCAB_SIZE)
-        label_matrix = torch.zeros(batch_size, 2)
+        batch_matrix = torch.zeros(batch_size, int(time_steps), VOCAB_SIZE)
+        label_matrix = torch.zeros(batch_size, 2).type(torch.LongTensor)
 
         for batch_number, vectors_and_label in enumerate(vectors_and_labels):
             vectors = vectors_and_label['vectors']
@@ -123,10 +123,10 @@ class Dataset:
             vectors += [np.zeros(VOCAB_SIZE)] * (time_steps - len(vectors))
 
             label = vectors_and_label['label']
-            label_matrix[batch_number, :] = torch.from_numpy(label)
+            label_matrix[batch_number, :] = torch.from_numpy(label).type(torch.LongTensor)
 
             for time_step, vector in enumerate(vectors):
-                batch_matrix[time_step, batch_number, :] = torch.from_numpy(vector)
+                batch_matrix[batch_number, time_step, :] = torch.from_numpy(vector)
 
         return batch_matrix, label_matrix
 
@@ -158,7 +158,7 @@ def test():
     assert(len(dataset.word_to_index) == VOCAB_SIZE)
 
     minibatch = dataset.get_next_minibatch('train', 3)
-    assert(minibatch[0][0].size()[1] == 3)
+    assert(minibatch[0][0].size()[0] == 3)
     assert(minibatch[0][0].size()[2] == VOCAB_SIZE)
     assert(minibatch[0][1].size()[0] == 3)
     assert(minibatch[0][1].size()[1] == 2)
