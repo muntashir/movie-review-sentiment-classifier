@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 VOCAB_SIZE = 89528
-
+MAX_LENGTH = 100
 
 class Dataset:
 
@@ -114,13 +114,15 @@ class Dataset:
             time_steps = np.max([len(vectors_and_label['vectors']), time_steps])
             vectors_and_labels.append(vectors_and_label)
 
-        batch_matrix = torch.zeros(batch_size, int(time_steps), VOCAB_SIZE)
+        batch_matrix = torch.zeros(batch_size, int(np.min([time_steps, MAX_LENGTH])), VOCAB_SIZE)
         label_matrix = torch.zeros(batch_size, 2).type(torch.LongTensor)
 
         for batch_number, vectors_and_label in enumerate(vectors_and_labels):
             vectors = vectors_and_label['vectors']
-            # Pad vectors to max length in batch
+            # Pad vectors to max length in batch and limit to MAX_LENGTH
             vectors += [np.zeros(VOCAB_SIZE)] * (time_steps - len(vectors))
+            if time_steps > MAX_LENGTH:
+                vectors = vectors[:MAX_LENGTH]
 
             label = vectors_and_label['label']
             label_matrix[batch_number, :] = torch.from_numpy(label).type(torch.LongTensor)
