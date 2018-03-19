@@ -1,6 +1,7 @@
 import os
 import random
 import json
+import torch
 import numpy as np
 
 VOCAB_SIZE = 89528
@@ -59,8 +60,9 @@ class Dataset:
                 self.word_to_index = [line.rstrip('\n') for line in vocab_file]
 
     def __load_text_as_vectors(self, batch):
+        batch_size = len(batch)
         vectors_and_labels = []
-        max_length = 0
+        time_steps = 0
 
         for data in batch:
             vectors_and_label = {}
@@ -109,14 +111,24 @@ class Dataset:
                 word_vector[index] = 1
                 vectors_and_label['vectors'].append(word_vector)
 
-            max_length = np.max([len(vectors_and_label['vectors']), max_length])
+            time_steps = np.max([len(vectors_and_label['vectors']), time_steps])
             vectors_and_labels.append(vectors_and_label)
 
-        # Pad vectors
-        for vectors_and_label in vectors_and_labels:
-            vectors_and_label['vectors'] += [np.zeros(VOCAB_SIZE)] * (max_length - len(vectors_and_label['vectors']))
+        batch_matrix = torch.zeros(int(time_steps), batch_size, VOCAB_SIZE)
+        label_matrix = torch.zeros(batch_size, 2)
 
-        return vectors_and_labels
+        for batch_number, vectors_and_label in enumerate(vectors_and_labels):
+            vectors = vectors_and_label['vectors']
+            # Pad vectors to max length in batch
+            vectors += [np.zeros(VOCAB_SIZE)] * (time_steps - len(vectors))
+
+            label = vectors_and_label['label']
+            label_matrix[batch_number, :] = torch.from_numpy(label)
+
+            for time_step, vector in enumerate(vectors):
+                batch_matrix[time_step, batch_number, :] = torch.from_numpy(vector)
+
+        return batch_matrix, label_matrix
 
     def get_next_minibatch(self, dataset_split, batch_size):
         epoch_end = False
@@ -146,8 +158,10 @@ def test():
     assert(len(dataset.word_to_index) == VOCAB_SIZE)
 
     minibatch = dataset.get_next_minibatch('train', 3)
-    assert(len(minibatch[0]) == 3)
-
+    assert(minibatch[0][0].size()[1] == 3)
+    assert(minibatch[0][0].size()[2] == VOCAB_SIZE)
+    assert(minibatch[0][1].size()[0] == 3)
+    assert(minibatch[0][1].size()[1] == 2)
 
 if __name__ == '__main__':
     test()
