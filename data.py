@@ -60,9 +60,16 @@ class Dataset:
 
     def __load_text_as_vectors(self, batch):
         vectors_and_labels = []
+        max_length = 0
+
         for data in batch:
             vectors_and_label = {}
-            vectors_and_label['label'] = data['label']
+            label = np.zeros(2)
+            if (data['label'] == 'pos'):
+                label[0] = 1
+            elif (data['label'] == 'neg'):
+                label[1] = 1
+            vectors_and_label['label'] = label
             vectors_and_label['vectors'] = []
 
             filepath = data['path']
@@ -84,6 +91,7 @@ class Dataset:
                     .replace(';', '') \
                     .replace('*', '') \
                     .replace('`', '') \
+                    .replace('&', '') \
                     .replace('\\', '') \
                     .split(' ')
             words = list(filter(None, words))
@@ -101,7 +109,12 @@ class Dataset:
                 word_vector[index] = 1
                 vectors_and_label['vectors'].append(word_vector)
 
+            max_length = np.max([len(vectors_and_label['vectors']), max_length])
             vectors_and_labels.append(vectors_and_label)
+
+        # Pad vectors
+        for vectors_and_label in vectors_and_labels:
+            vectors_and_label['vectors'] += [np.zeros(VOCAB_SIZE)] * (max_length - len(vectors_and_label['vectors']))
 
         return vectors_and_labels
 
