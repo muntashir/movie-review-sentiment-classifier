@@ -16,7 +16,7 @@ def main(args):
     net = model.Net(data.VOCAB_SIZE)
 
     if os.path.isfile(args.model_filename):
-        checkpoint = (torch.load(filename) if (torch.cuda.is_available())
+        checkpoint = (torch.load(args.model_filename) if (torch.cuda.is_available())
                       else torch.load(filename, map_location=lambda storage, loc: storage))
         net.load_state_dict(checkpoint['state_dict'])
 
@@ -28,6 +28,7 @@ def main(args):
     total_loss = []
 
     test_step = 0
+    num_correct = 0
     test_size = len(dataset.dataset['test'])
     while epoch_end == False:
         test_step += 1
@@ -40,14 +41,20 @@ def main(args):
             labels_tensor = labels_tensor.cuda()
 
         output = net.forward(batch_tensor)
-        loss = criterion(output, torch.max(labels_tensor, 1)[1])
+
+        label_index = torch.max(labels_tensor, 1)[1]
+        output_index = torch.max(output, 1)[1]
+        num_correct += (label_index == output_index).sum().type(torch.LongTensor)
+
+        loss = criterion(output, label_index)
         total_loss.append(loss.data)
+
         sys.stdout.write('Test step %i/%i\r' % (test_step, test_size))
         sys.stdout.flush()
 
     total_loss = float(sum(total_loss)[0]) / float(len(total_loss))
     print('\nTest loss: %f' % total_loss)
-
+    print('\nAccuracy: %f%%' % ((float(num_correct) / float(test_size)) * 100))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
