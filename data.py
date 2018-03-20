@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 VOCAB_SIZE = 89528
-MAX_LENGTH = 100
+MAX_LENGTH = 150
 
 class Dataset:
 
