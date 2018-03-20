@@ -16,7 +16,7 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
 
     net = model.Net(data.VOCAB_SIZE)
-    optimizer = optim.Adam(net.parameters())
+    optimizer = optim.Adam(net.parameters(), lr=1e-4, weight_decay=1e-5)
     step = 0
 
     if os.path.isfile(args.model_filename):
@@ -108,14 +108,14 @@ if __name__ == '__main__':
         '-c',
         '--checkpoint-interval',
         help='Checkpoint training after these many steps',
-        default=1000,
+        default=5000,
         type=int,
         dest='checkpoint_interval')
     parser.add_argument(
         '-b',
         '--batch-size',
         help='The batch size',
-        default=3,
+        default=4,
         type=int,
         dest='batch_size')
     parser.add_argument(
