@@ -13,9 +13,6 @@ class Net(nn.Module):
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True)
         self.out_linear = nn.Linear(hidden_dim, 2)
 
-    def step(self, input, hidden=None):
-        output, hidden = self.lstm(input, hidden)
-
     def forward(self, input):
         batch_size = input.size()[0]
         h0 = Variable(torch.randn(1, batch_size, self.hidden_dim))
